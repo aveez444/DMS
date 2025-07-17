@@ -4,13 +4,16 @@ from datetime import timedelta
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-2_12umayw+o_$llr$^)dgwzx0+eyh^9x5%tbo5m%5wh^jlxxr7')
+
+# Security: Use environment variable for SECRET_KEY, no fallback
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY environment variable is not set")
+
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.localhost', '.up.railway.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.localhost', '*.up.railway.app']
 
 ROOT_URLCONF = 'Vehicle_seller.urls'
-
-# django_tenants configuration
 TENANT_MODEL = "tenants.Client"
 TENANT_DOMAIN_MODEL = "tenants.Domain"
 
@@ -26,6 +29,7 @@ SHARED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'corsheaders',
 ]
 
@@ -35,7 +39,6 @@ TENANT_APPS = [
 
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS
 SITE_ID = 1
-
 DATABASE_ROUTERS = ['django_tenants.routers.TenantSyncRouter']
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
@@ -43,8 +46,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django_tenants.middleware.main.TenantMainMiddleware',
-    'dealership.middleware.AutoPermissionMiddleware',
+    'accounts.middleware.SimpleTenantMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -52,14 +54,13 @@ MIDDLEWARE = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'accounts.backends.SimpleTenantBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'accounts.custom_auth.HeaderBasedAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
+        'accounts.authentication.CustomSessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -71,10 +72,8 @@ REST_FRAMEWORK = {
     ],
 }
 
-# CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://*.localhost:3000",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "http://dealership1.localhost:3000",
@@ -86,30 +85,19 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
 CORS_ALLOW_HEADERS = [
     'accept',
-    'accept-encoding',
     'authorization',
     'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
     'x-csrftoken',
-    'x-requested-with',
     'x-session-id',
 ]
 
-# Session settings
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_AGE = 1209600
-SESSION_COOKIE_DOMAIN = None
 
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_DOMAIN = None
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_USE_SESSIONS = False
-
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:8000",
@@ -119,7 +107,6 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.up.railway.app",
 ]
 
-# Logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -130,9 +117,13 @@ LOGGING = {
 WSGI_APPLICATION = 'Vehicle_seller.wsgi.application'
 
 # Database configuration
+DATABASE_URL = os.getenv('DATABASE_URL')
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is not set")
+
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', 'postgresql://postgres:1@localhost:5432/vehicle_seller_db'),
+        default=DATABASE_URL,
         conn_max_age=600,
         engine='django_tenants.postgresql_backend',
     )
@@ -168,6 +159,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'accounts.context_processors.tenant_context',
             ],
         },
     },
