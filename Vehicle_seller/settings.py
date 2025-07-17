@@ -6,7 +6,7 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security: Use environment variable for SECRET_KEY, no fallback
-SECRET_KEY = os.getenv('StXCiPB7S-f1WMcxx8q57t-szUQzQ2_MxDMzVWctxDGm1u_S6UnReFBrBHmAVymVC5GM')
+SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY environment variable is not set")
 
