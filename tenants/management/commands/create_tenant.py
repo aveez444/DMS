@@ -1,10 +1,11 @@
-# tenants/management/commands/create_tenant.py
 from django.core.management.base import BaseCommand
+from django_tenants.utils import tenant_context
 from tenants.models import Client, Domain
-from django.db import connection
+from django.core.management import call_command
+
 
 class Command(BaseCommand):
-    help = 'Create a new tenant with domain'
+    help = 'Create a new tenant with domain and schema'
 
     def add_arguments(self, parser):
         parser.add_argument('--schema_name', required=True, help='Schema name for the tenant')
@@ -13,21 +14,34 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         schema_name = options['schema_name']
-        name = options['name']
-        domain_str = options['domain']
-        
-        # Check if tenant exists
+        tenant_name = options['name']
+        domain_name = options['domain']
+
+        # Check if tenant with the schema already exists
         if Client.objects.filter(schema_name=schema_name).exists():
-            self.stdout.write(self.style.ERROR(f'Tenant with schema "{schema_name}" already exists'))
+            self.stdout.write(self.style.ERROR(
+                f'Tenant with schema "{schema_name}" already exists.'
+            ))
             return
-            
-        # Create tenant
-        tenant = Client(schema_name=schema_name, name=name)
-        tenant.save()
-        
-        # Create domain for tenant
-        domain = Domain(domain=domain_str, tenant=tenant, is_primary=True)
-        domain.save()
-        
-        # Confirm creation
-        self.stdout.write(self.style.SUCCESS(f'Successfully created tenant "{name}" with schema "{schema_name}" and domain "{domain_str}"'))
+
+        # Create new tenant
+        tenant = Client.objects.create(
+            schema_name=schema_name,
+            name=tenant_name
+        )
+
+        # Create primary domain for the tenant
+        Domain.objects.create(
+            domain=domain_name,
+            tenant=tenant,
+            is_primary=True
+        )
+
+        # Run migrations in tenant context
+        with tenant_context(tenant):
+            call_command('migrate', interactive=False)
+
+        self.stdout.write(self.style.SUCCESS(
+            f'Successfully created tenant "{tenant_name}" '
+            f'with schema "{schema_name}" and domain "{domain_name}".'
+        ))
