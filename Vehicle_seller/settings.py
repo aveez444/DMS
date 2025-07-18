@@ -92,6 +92,7 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-session-id',
 ]
+ALLOWED_HOSTS = ['web-production-fad6.up.railway.app']
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_SAMESITE = 'Lax'
