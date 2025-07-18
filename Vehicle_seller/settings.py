@@ -79,6 +79,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://dealership1.localhost:3000",
     "http://dealership2.localhost:3000",
     "https://*.up.railway.app",
+    "https://dms-frontend-vite-kvhm.vercel.app",
+    "https://your-frontend.vercel.app", 
 ]
 
 CORS_ALLOW_CREDENTIALS = True
