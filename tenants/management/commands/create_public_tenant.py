@@ -18,7 +18,7 @@ class Command(BaseCommand):
         # Create public domain
         domain, domain_created = Domain.objects.get_or_create(
             tenant=public_tenant,
-            domain='127.0.0.1'
+            domain='0.0.0.0:8080'
         )
         
         self.stdout.write(
