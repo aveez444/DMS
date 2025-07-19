@@ -21,6 +21,8 @@ if ENVIRONMENT == 'production':
     ALLOWED_HOSTS = [
         'dms-g5l7.onrender.com',
         '*.dms-g5l7.onrender.com',
+        'https://dms-g7vw.onrender.com',
+        'dms-g7vw.onrender.com',
         'your-domain.com',  # Replace with your actual domain
         '*.your-domain.com',
     ]
@@ -99,7 +101,7 @@ if ENVIRONMENT == 'production':
     CORS_ALLOWED_ORIGINS = [
         "https://dms-frontend-vite-kvhm.vercel.app",
         "https://dms-g5l7.onrender.com",
-        "https://your-domain.com",  # Your main domain
+        "https://dms-g7vw.onrender.com",  # Your main domain
         "https://dealership1.your-domain.com",  # Subdomain examples
         "https://dealership2.your-domain.com",
     ]
@@ -107,7 +109,7 @@ if ENVIRONMENT == 'production':
     CSRF_TRUSTED_ORIGINS = [
         "https://dms-frontend-vite-kvhm.vercel.app",
         "https://dms-g5l7.onrender.com",
-        "https://your-domain.com",
+        "https://dms-g7vw.onrender.com",
         "https://*.your-domain.com",
     ]
     
