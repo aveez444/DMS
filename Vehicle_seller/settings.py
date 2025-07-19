@@ -2,6 +2,9 @@ from pathlib import Path
 import os
 from datetime import timedelta
 import dj_database_url
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -11,7 +14,15 @@ if not SECRET_KEY:
     raise ValueError("SECRET_KEY environment variable is not set")
 
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.localhost', '*.up.railway.app']
+
+# Update ALLOWED_HOSTS for Render
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.localhost',
+    'your-app.onrender.com',  # Replace with your Render domain
+    '*.your-app.onrender.com',  # Wildcard for tenant subdomains
+]
 
 ROOT_URLCONF = 'Vehicle_seller.urls'
 TENANT_MODEL = "tenants.Client"
@@ -48,7 +59,6 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django_tenants.middleware.main.TenantMainMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
@@ -72,15 +82,14 @@ REST_FRAMEWORK = {
     ],
 }
 
+# Update CORS settings for Render and Vercel
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:8000",
     "http://localhost:8000",
-    "http://dealership1.localhost:3000",
-    "http://dealership2.localhost:3000",
-    "https://*.up.railway.app",
     "https://dms-frontend-vite-kvhm.vercel.app",
-    "https://your-frontend.vercel.app", 
+    "https://your-app.onrender.com",  # Replace with your Render domain
+    "https://*.your-app.onrender.com",  # Wildcard for tenant subdomains
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -92,23 +101,25 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-session-id',
 ]
-ALLOWED_HOSTS = ['web-production-fad6.up.railway.app']
+
+# Update CSRF settings for Render and Vercel
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "https://dms-frontend-vite-kvhm.vercel.app",
+    "https://your-app.onrender.com",  # Replace with your Render domain
+    "https://*.your-app.onrender.com",  # Wildcard for tenant subdomains
+]
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_AGE = 1209600
+SESSION_COOKIE_DOMAIN = '.your-app.onrender.com'  # Replace with your Render domain
 
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:8000",
-    "http://localhost:8000",
-    "http://dealership1.localhost:3000",
-    "http://dealership2.localhost:3000",
-    "https://*.up.railway.app",
-]
 
 LOGGING = {
     'version': 1,
