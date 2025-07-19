@@ -20,8 +20,8 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.localhost',
-    'dms-g5l7.onrender.com' # Replace with your Render domain
-    '*.your-app.onrender.com',  # Wildcard for tenant subdomains
+    'dms-g5l7.onrender.com',
+    '*.dms-g5l7.onrender.com',
 ]
 
 ROOT_URLCONF = 'Vehicle_seller.urls'
@@ -59,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django_tenants.middleware.main.TenantMainMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
@@ -88,8 +89,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "https://dms-frontend-vite-kvhm.vercel.app",
-    "https://dms-g5l7.onrender.com",  # Replace with your Render domain
-    "https://*.your-app.onrender.com",  # Wildcard for tenant subdomains
+    "https://dms-g5l7.onrender.com",
+    "https://*.dms-g5l7.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -108,15 +109,15 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "https://dms-frontend-vite-kvhm.vercel.app",
-    "https://dms-g5l7.onrender.com",  # Replace with your Render domain
-    "https://*.your-app.onrender.com",  # Wildcard for tenant subdomains
+    "https://dms-g5l7.onrender.com",
+    "https://*.dms-g5l7.onrender.com",
 ]
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_AGE = 1209600
-SESSION_COOKIE_DOMAIN = '.your-app.onrender.com'  # Replace with your Render domain
+SESSION_COOKIE_DOMAIN = '.dms-g5l7.onrender.com'
 
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = 'Lax'
