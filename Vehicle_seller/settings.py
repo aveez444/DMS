@@ -14,15 +14,24 @@ if not SECRET_KEY:
     raise ValueError("SECRET_KEY environment variable is not set")
 
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')  # Add environment detection
 
-# Update ALLOWED_HOSTS for Render
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '.localhost',
-    'dms-g5l7.onrender.com',
-    '*.dms-g5l7.onrender.com',
-]
+# Update ALLOWED_HOSTS for production
+if ENVIRONMENT == 'production':
+    ALLOWED_HOSTS = [
+        'dms-g5l7.onrender.com',
+        '*.dms-g5l7.onrender.com',
+        'your-domain.com',  # Replace with your actual domain
+        '*.your-domain.com',
+    ]
+else:
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        '.localhost',
+        'dms-g5l7.onrender.com',
+        '*.dms-g5l7.onrender.com',
+    ]
 
 ROOT_URLCONF = 'Vehicle_seller.urls'
 TENANT_MODEL = "tenants.Client"
@@ -56,8 +65,10 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django_tenants.middleware.main.TenantMainMiddleware',
+    'tenants.middleware.TenantIdentificationMiddleware',  # Updated path
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -83,15 +94,44 @@ REST_FRAMEWORK = {
     ],
 }
 
-# Update CORS settings for Render and Vercel
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:8000",
-    "http://localhost:8000",
-    "https://dms-frontend-vite-kvhm.vercel.app",
-    "https://dms-g5l7.onrender.com",
-    "https://*.dms-g5l7.onrender.com",
-]
+# Update CORS settings for production
+if ENVIRONMENT == 'production':
+    CORS_ALLOWED_ORIGINS = [
+        "https://dms-frontend-vite-kvhm.vercel.app",
+        "https://dms-g5l7.onrender.com",
+        "https://your-domain.com",  # Your main domain
+        "https://dealership1.your-domain.com",  # Subdomain examples
+        "https://dealership2.your-domain.com",
+    ]
+    
+    CSRF_TRUSTED_ORIGINS = [
+        "https://dms-frontend-vite-kvhm.vercel.app",
+        "https://dms-g5l7.onrender.com",
+        "https://your-domain.com",
+        "https://*.your-domain.com",
+    ]
+    
+    SESSION_COOKIE_DOMAIN = '.your-domain.com'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+else:
+    # Development settings
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "https://dms-frontend-vite-kvhm.vercel.app",
+    ]
+    
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "https://dms-frontend-vite-kvhm.vercel.app",
+    ]
+    
+    SESSION_COOKIE_DOMAIN = '.localhost'
+    SESSION_COOKIE_SECURE = False
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
@@ -103,24 +143,11 @@ CORS_ALLOW_HEADERS = [
     'x-session-id',
 ]
 
-# Update CSRF settings for Render and Vercel
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:8000",
-    "http://localhost:8000",
-    "https://dms-frontend-vite-kvhm.vercel.app",
-    "https://dms-g5l7.onrender.com",
-    "https://*.dms-g5l7.onrender.com",
-]
-
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'None' if ENVIRONMENT == 'production' else 'Lax'
 SESSION_COOKIE_AGE = 1209600
-SESSION_COOKIE_DOMAIN = '.dms-g5l7.onrender.com'
 
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'None' if ENVIRONMENT == 'production' else 'Lax'
 
 LOGGING = {
     'version': 1,
@@ -156,8 +183,11 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# Static files configuration for production
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 

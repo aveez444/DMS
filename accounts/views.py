@@ -25,6 +25,7 @@ import base64
 
 
 logger = logging.getLogger(__name__)
+# accounts/views.py - Updated universal_login function
 
 @csrf_exempt
 def universal_login(request):
@@ -48,17 +49,23 @@ def universal_login(request):
 
                             # Get domain
                             domain = Domain.objects.get(tenant=tenant)
-
+                            
                             # Store session data
                             request.session['tenant_id'] = tenant.id
+                            request.session['tenant_schema'] = tenant.schema_name
                             request.session['tenant_domain'] = domain.domain
                             request.session.modified = True
                             request.session.save()
                             session_key = request.session.session_key
-                            logger.debug(f"Session saved: {dict(request.session)}, Session key: {session_key}")
-
-                            # Generate JWT tokens
-                            refresh = RefreshToken.for_user(user)
+                            
+                            # Determine the API base URL (Option A: Single Domain)
+                            environment = os.getenv('ENVIRONMENT', 'development')
+                            if environment == 'production':
+                                # Production: Single domain with path-based routing
+                                api_base_url = "https://dms-g5l7.onrender.com"
+                            else:
+                                # Development: Still use localhost for universal login
+                                api_base_url = "http://127.0.0.1:8000"
 
                             response = JsonResponse({
                                 'success': True,
@@ -73,20 +80,24 @@ def universal_login(request):
                                     'id': tenant.id,
                                     'schema_name': tenant.schema_name,
                                     'name': tenant.name,
-                                    'domain': domain.domain
+                                    'domain': domain.domain,
+                                    'api_base_url': api_base_url
                                 },
                                 'session_id': session_key
                             })
 
+                            # Set appropriate cookie domain
+                            cookie_domain = '.your-domain.com' if environment == 'production' else '.localhost'
+                            
                             response.set_cookie(
                                 'sessionid',
                                 session_key,
                                 httponly=True,
-                                samesite='None',
-                                domain='.localhost',
-                                secure=False  # Set to True in production
+                                samesite='None' if environment == 'production' else 'Lax',
+                                domain=cookie_domain,
+                                secure=environment == 'production'
                             )
-                            logger.debug(f"Set-Cookie: sessionid={session_key}")
+                            
                             return response
                     except CustomUser.DoesNotExist:
                         continue
