@@ -20,7 +20,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.localhost',
-    'your-app.onrender.com',  # Replace with your Render domain
+    'dms-g5l7.onrender.com' # Replace with your Render domain
     '*.your-app.onrender.com',  # Wildcard for tenant subdomains
 ]
 
@@ -88,7 +88,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "https://dms-frontend-vite-kvhm.vercel.app",
-    "https://your-app.onrender.com",  # Replace with your Render domain
+    "https://dms-g5l7.onrender.com",  # Replace with your Render domain
     "https://*.your-app.onrender.com",  # Wildcard for tenant subdomains
 ]
 
@@ -108,7 +108,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
     "https://dms-frontend-vite-kvhm.vercel.app",
-    "https://your-app.onrender.com",  # Replace with your Render domain
+    "https://dms-g5l7.onrender.com",  # Replace with your Render domain
     "https://*.your-app.onrender.com",  # Wildcard for tenant subdomains
 ]
 
