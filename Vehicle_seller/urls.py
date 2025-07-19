@@ -20,10 +20,14 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
 from accounts import views as account_views
+from django.http import JsonResponse  # You should add this if not already
+
+def health_check(request):
+    return JsonResponse({"status": "Running", "message": "Welcome to Vehicle Seller API"})
 
 urlpatterns = [
-
-    path('admin/', admin.site.urls),  # Only default admin
+    path('admin/', admin.site.urls),
+    path('', health_check),  # ✅ This handles /
     path('api/universal-login/', account_views.universal_login, name='universal_login'),
     path('dealership/', include('dealership.urls')),
     path('accounts/', include('accounts.urls')),

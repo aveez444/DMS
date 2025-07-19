@@ -21,6 +21,7 @@ if ENVIRONMENT == 'production':
     ALLOWED_HOSTS = [
         'dms-g5l7.onrender.com',
         '*.dms-g5l7.onrender.com',
+        '.onrender.com',
         'https://dms-g7vw.onrender.com',
         'dms-g7vw.onrender.com',
         'your-domain.com',  # Replace with your actual domain
