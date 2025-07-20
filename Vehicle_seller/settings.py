@@ -20,12 +20,8 @@ ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')  # Add environment detecti
 if ENVIRONMENT == 'production':
     ALLOWED_HOSTS = [
         'dms-g5l7.onrender.com',
-        '*.dms-g5l7.onrender.com',
-        '.onrender.com',
-        'https://dms-g7vw.onrender.com',
-        'dms-g7vw.onrender.com',
-        'your-domain.com',  # Replace with your actual domain
-        '*.your-domain.com',
+        'dms-g7vw.onrender.com',  # Add your actual domain
+        '.onrender.com',  # Allow any onrender.com subdomain as fallback
     ]
 else:
     ALLOWED_HOSTS = [
@@ -68,10 +64,10 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add for static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django_tenants.middleware.main.TenantMainMiddleware',
-    'tenants.middleware.TenantIdentificationMiddleware',  # Updated path
+    'tenants.middleware_custom.HeaderTenantMiddleware',  # New custom middleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -114,7 +110,7 @@ if ENVIRONMENT == 'production':
         "https://*.your-domain.com",
     ]
     
-    SESSION_COOKIE_DOMAIN = '.your-domain.com'
+    SESSION_COOKIE_DOMAIN = None  # Use default domain
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 else:
@@ -144,20 +140,43 @@ CORS_ALLOW_HEADERS = [
     'content-type',
     'x-csrftoken',
     'x-session-id',
+    'x-tenant-domain',  # Add custom tenant header
 ]
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_SAMESITE = 'None' if ENVIRONMENT == 'production' else 'Lax'
+SESSION_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_AGE = 1209600
 
-CSRF_COOKIE_SAMESITE = 'None' if ENVIRONMENT == 'production' else 'Lax'
+CSRF_COOKIE_SAMESITE = 'None'
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {'console': {'class': 'logging.StreamHandler'}},
-    'loggers': {'': {'handlers': ['console'], 'level': 'DEBUG', 'propagate': True}},
-}
+ LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'verbose',
+            },
+        },
+        'loggers': {
+            'tenants': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+                'propagate': True,
+            },
+            'accounts': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+                'propagate': True,
+            },
+        },
+    }
 
 WSGI_APPLICATION = 'Vehicle_seller.wsgi.application'
 

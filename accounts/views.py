@@ -34,10 +34,12 @@ def universal_login(request):
             data = json.loads(request.body)
             username = data.get('username')
             password = data.get('password')
-            tenants = Client.objects.exclude(schema_name='public')
-
+            
             logger.debug(f"Login attempt for username: {username}")
-
+            
+            # Get all non-public tenants
+            tenants = Client.objects.exclude(schema_name='public')
+            
             for tenant in tenants:
                 with tenant_context(tenant):
                     try:
@@ -46,28 +48,28 @@ def universal_login(request):
                             # Log in user and set session
                             login(request, user)
                             logger.debug(f"User {username} logged in for tenant: {tenant.name}")
-
-                            # Get domain
+                            
+                            # Get tenant domain
                             domain = Domain.objects.get(tenant=tenant)
                             
-                            # Store session data
+                            # Store comprehensive session data
                             request.session['tenant_id'] = tenant.id
                             request.session['tenant_schema'] = tenant.schema_name
                             request.session['tenant_domain'] = domain.domain
+                            request.session['user_id'] = user.id
                             request.session.modified = True
                             request.session.save()
+                            
                             session_key = request.session.session_key
                             
-                            # Determine the API base URL (Option A: Single Domain)
+                            # Determine API base URL for production
                             environment = os.getenv('ENVIRONMENT', 'development')
                             if environment == 'production':
-                                # Production: Single domain with path-based routing
                                 api_base_url = "https://dms-g5l7.onrender.com"
                             else:
-                                # Development: Still use localhost for universal login
                                 api_base_url = "http://127.0.0.1:8000"
-
-                            response = JsonResponse({
+                            
+                            response_data = {
                                 'success': True,
                                 'message': f'Welcome to {tenant.name}',
                                 'user': {
@@ -83,33 +85,60 @@ def universal_login(request):
                                     'domain': domain.domain,
                                     'api_base_url': api_base_url
                                 },
-                                'session_id': session_key
-                            })
-
-                            # Set appropriate cookie domain
-                            cookie_domain = '.your-domain.com' if environment == 'production' else '.localhost'
+                                'session_id': session_key,
+                                'auth_headers': {
+                                    'X-Tenant-Domain': domain.domain,
+                                    'X-Session-ID': session_key
+                                }
+                            }
+                            
+                            response = JsonResponse(response_data)
+                            
+                            # Set secure cookies for production
+                            cookie_domain = None  # Use default for single domain
+                            if environment == 'production':
+                                cookie_secure = True
+                                cookie_samesite = 'None'
+                            else:
+                                cookie_secure = False
+                                cookie_samesite = 'Lax'
                             
                             response.set_cookie(
                                 'sessionid',
                                 session_key,
                                 httponly=True,
-                                samesite='None' if environment == 'production' else 'Lax',
+                                samesite=cookie_samesite,
                                 domain=cookie_domain,
-                                secure=environment == 'production'
+                                secure=cookie_secure
                             )
                             
                             return response
+                            
                     except CustomUser.DoesNotExist:
                         continue
-
+            
             logger.warning(f"Login failed for username: {username}")
             return JsonResponse({'error': 'Invalid credentials'}, status=401)
-
+            
         except Exception as e:
             logger.error(f"Login error: {str(e)}", exc_info=True)
             return JsonResponse({'error': f'Server error: {str(e)}'}, status=500)
-
+    
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+# Add a health check endpoint that works with any tenant
+def health_check(request):
+    """Health check endpoint that provides system status"""
+    tenant_info = "unknown"
+    if hasattr(request, 'tenant'):
+        tenant_info = f"{request.tenant.name} ({request.tenant.schema_name})"
+    
+    return JsonResponse({
+        "status": "Running",
+        "message": "Welcome to Vehicle Seller API",
+        "tenant": tenant_info,
+        "environment": os.getenv('ENVIRONMENT', 'development')
+    })
     
 # accounts/views.py
 from django.shortcuts import render
