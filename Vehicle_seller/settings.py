@@ -66,8 +66,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django_tenants.middleware.main.TenantMainMiddleware',
-    'tenants.middleware_custom.HeaderTenantMiddleware',  # New custom middleware
+    'tenants.middleware_custom.HeaderTenantMiddleware',  # Your custom header-based tenant middleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
