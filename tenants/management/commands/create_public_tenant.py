@@ -1,106 +1,120 @@
+# tenants/management/commands/create_public_tenant.py
 from django.core.management.base import BaseCommand
 from tenants.models import Client, Domain
 import os
 
 class Command(BaseCommand):
-    help = 'Create public tenant and domain for production deployment'
+    help = 'Create public tenant and domain'
 
     def add_arguments(self, parser):
         parser.add_argument(
             '--domain',
             type=str,
             default=None,
-            help='Domain for the public tenant',
+            help='Domain for the public tenant (e.g., dms-g5l7.onrender.com or your-domain.com)',
         )
 
     def handle(self, *args, **options):
+        # Determine the environment and domain
         environment = os.getenv('ENVIRONMENT', 'development')
         
-        # Determine the correct domain
         if options['domain']:
             domain_name = options['domain']
         elif environment == 'production':
-            domain_name = 'dms-g5l7.onrender.com'  # Your actual production domain
+            # Use your production domain
+            domain_name = 'dms-g5l7.onrender.com'  # or your custom domain
         else:
+            # Development domain
             domain_name = 'localhost:8000'
         
-        # Create or update public tenant
+        # Create public tenant if it doesn't exist
         public_tenant, created = Client.objects.get_or_create(
             schema_name='public',
             defaults={
                 'name': 'Public Site',
-                'description': 'Main public tenant for universal login',
                 'is_active': True
             }
         )
         
-        if not created:
-            public_tenant.name = 'Public Site'
-            public_tenant.description = 'Main public tenant for universal login'
-            public_tenant.is_active = True
-            public_tenant.save()
-        
-        # Create or update public domain
-        domain, domain_created = Domain.objects.get_or_create(
-            tenant=public_tenant,
-            domain=domain_name,
-            defaults={'is_primary': True}
-        )
-        
-        if not domain_created:
-            domain.is_primary = True
-            domain.save()
+        # Create or get public domain - FIXED: Handle existing domains properly
+        try:
+            domain = Domain.objects.get(tenant=public_tenant, domain=domain_name)
+            domain_created = False
+            self.stdout.write(
+                self.style.WARNING(f'Public domain already exists - {domain_name}')
+            )
+        except Domain.DoesNotExist:
+            domain = Domain.objects.create(
+                tenant=public_tenant,
+                domain=domain_name,
+                is_primary=True
+            )
+            domain_created = True
+            self.stdout.write(
+                self.style.SUCCESS(f'Public domain created - {domain_name}')
+            )
         
         self.stdout.write(
-            self.style.SUCCESS(f'Public tenant {"created" if created else "updated"}')
-        )
-        self.stdout.write(
-            self.style.SUCCESS(f'Public domain {"created" if domain_created else "updated"} - {domain_name}')
+            self.style.SUCCESS(f'Public tenant {"created" if created else "already exists"}')
         )
         
-        # Create dealership tenants for production
+        # Create sample dealership tenants for production
         if environment == 'production':
-            self.create_dealership_tenants(domain_name)
+            self.create_sample_dealerships(domain_name)
     
-    def create_dealership_tenants(self, base_domain):
-        """Create dealership tenants with single-domain configuration"""
+    def create_sample_dealerships(self, base_domain):
+        """Create sample dealership tenants with proper domains - FIXED VERSION"""
         dealerships = [
             {'schema': 'dealership1', 'name': 'Dealership One'},
             {'schema': 'dealership2', 'name': 'Dealership Two'},
         ]
         
         for dealer_info in dealerships:
-            # Create or update tenant
+            # Create tenant
             tenant, created = Client.objects.get_or_create(
                 schema_name=dealer_info['schema'],
                 defaults={
                     'name': dealer_info['name'],
-                    'description': f'Tenant for {dealer_info["name"]}',
                     'is_active': True
                 }
             )
             
-            if not created:
-                tenant.name = dealer_info['name']
-                tenant.description = f'Tenant for {dealer_info["name"]}'
-                tenant.is_active = True
-                tenant.save()
-            
-            # For single-domain approach, use the same base domain
-            # The tenant will be identified by headers, not subdomains
-            domain, domain_created = Domain.objects.get_or_create(
-                tenant=tenant,
-                domain=base_domain,  # Same domain for all tenants
-                defaults={'is_primary': True}
-            )
-            
-            if not domain_created:
-                domain.domain = base_domain
-                domain.is_primary = True
-                domain.save()
+            # FIXED: Handle existing domains properly for dealership tenants
+            try:
+                # Check if domain already exists for this tenant
+                domain = Domain.objects.get(tenant=tenant, domain=base_domain)
+                domain_created = False
+                self.stdout.write(
+                    self.style.WARNING(f'Dealership {dealer_info["name"]} domain already exists - {base_domain}')
+                )
+            except Domain.DoesNotExist:
+                # Check if domain exists for ANY tenant (this is what was causing the error)
+                existing_domain = Domain.objects.filter(domain=base_domain).first()
+                if existing_domain:
+                    # Domain exists but for different tenant - this is the issue
+                    # For single-domain approach, we need to handle this differently
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f'Domain {base_domain} already exists for tenant {existing_domain.tenant.name}. '
+                            f'Skipping domain creation for {dealer_info["name"]} - will use header-based routing.'
+                        )
+                    )
+                    domain_created = False
+                else:
+                    # Safe to create new domain
+                    domain = Domain.objects.create(
+                        tenant=tenant,
+                        domain=base_domain,
+                        is_primary=True
+                    )
+                    domain_created = True
+                    self.stdout.write(
+                        self.style.SUCCESS(f'Dealership {dealer_info["name"]} domain created - {base_domain}')
+                    )
             
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'Dealership {dealer_info["name"]} tenant {"created" if created else "updated"} - {base_domain}'
+                    f'Dealership {dealer_info["name"]} tenant {"created" if created else "exists"}'
                 )
             )
+
