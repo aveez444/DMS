@@ -149,34 +149,35 @@ SESSION_COOKIE_AGE = 1209600
 
 CSRF_COOKIE_SAMESITE = 'None'
 
- LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'verbose': {
-                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-                'style': '{',
-            },
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
         },
-        'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
-                'formatter': 'verbose',
-            },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
         },
-        'loggers': {
-            'tenants': {
-                'handlers': ['console'],
-                'level': 'DEBUG',
-                'propagate': True,
-            },
-            'accounts': {
-                'handlers': ['console'],
-                'level': 'DEBUG',
-                'propagate': True,
-            },
+    },
+    'loggers': {
+        'tenants': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
         },
-    }
+        'accounts': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
 
 WSGI_APPLICATION = 'Vehicle_seller.wsgi.application'
 
