@@ -96,14 +96,18 @@ REST_FRAMEWORK = {
 if ENVIRONMENT == 'production':
     CORS_ALLOWED_ORIGINS = [
         "https://dms-frontend-vite-kvhm.vercel.app",
+        "https://dms-frontend-vite-kvhm-git-main-aveezs-projects.vercel.app",
+        "https://dms-frontend-vite-kvhm-mu01xusiz-aveezs-projects.vercel.app",
         "https://dms-g5l7.onrender.com",
-        "https://dms-g7vw.onrender.com",  # Your main domain
-        "https://dealership1.your-domain.com",  # Subdomain examples
+        "https://dms-g7vw.onrender.com",
+        "https://dealership1.your-domain.com",
         "https://dealership2.your-domain.com",
     ]
     
     CSRF_TRUSTED_ORIGINS = [
         "https://dms-frontend-vite-kvhm.vercel.app",
+        "https://dms-frontend-vite-kvhm-git-main-aveezs-projects.vercel.app",
+        "https://dms-frontend-vite-kvhm-mu01xusiz-aveezs-projects.vercel.app",
         "https://dms-g5l7.onrender.com",
         "https://dms-g7vw.onrender.com",
         "https://*.your-domain.com",
@@ -115,10 +119,13 @@ if ENVIRONMENT == 'production':
 else:
     # Development settings
     CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000",
-        "http://127.0.0.1:8000",
-        "http://localhost:8000",
         "https://dms-frontend-vite-kvhm.vercel.app",
+        "https://dms-frontend-vite-kvhm-git-main-aveezs-projects.vercel.app",
+        "https://dms-frontend-vite-kvhm-mu01xusiz-aveezs-projects.vercel.app",
+        "https://dms-g5l7.onrender.com",
+        "https://dms-g7vw.onrender.com",
+        "https://dealership1.your-domain.com",
+        "https://dealership2.your-domain.com",
     ]
     
     CSRF_TRUSTED_ORIGINS = [
