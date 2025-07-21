@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+import os
 from django.middleware.csrf import get_token
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
