@@ -23,18 +23,27 @@ class Command(BaseCommand):
         try:
             tenant = Client.objects.get(schema_name=schema_name)
             with tenant_context(tenant):
-                user = User.objects.create_user(
-                    username=options['username'],
-                    email=options['email'],
-                    password=options['password'],
-                    tenant=tenant,
-                    is_tenant_admin=options['is_admin']
-                )
+                # Check if user already exists
+                try:
+                    user = User.objects.get(username=options['username'])
+                    self.stdout.write(self.style.WARNING(
+                        f'User "{options["username"]}" already exists for tenant "{tenant.name}" - skipping creation'
+                    ))
+                    logger.debug(f"User {options['username']} already exists")
+                except User.DoesNotExist:
+                    # Create new user
+                    user = User.objects.create_user(
+                        username=options['username'],
+                        email=options['email'],
+                        password=options['password'],
+                        tenant=tenant,
+                        is_tenant_admin=options['is_admin']
+                    )
 
-                self.stdout.write(self.style.SUCCESS(
-                    f'Successfully created user "{options["username"]}" for tenant "{tenant.name}"'
-                ))
-                logger.debug(f"Created user {options['username']}")
+                    self.stdout.write(self.style.SUCCESS(
+                        f'Successfully created user "{options["username"]}" for tenant "{tenant.name}"'
+                    ))
+                    logger.debug(f"Created user {options['username']}")
 
         except Client.DoesNotExist:
             self.stdout.write(self.style.ERROR(f'Tenant with schema "{schema_name}" does not exist'))
