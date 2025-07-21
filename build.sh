@@ -16,4 +16,12 @@ python manage.py migrate --run-syncdb
 echo "Creating public tenant..."
 python manage.py create_public_tenant --domain=dms-g5l7.onrender.com
 
+echo "Creating admin user for dealership1..."
+python manage.py create_tenant_user \
+  --schema=dealership1 \
+  --username=manager1 \
+  --email=manager1@gmail.com \
+  --password=securepass \
+  --is_admin
+
 echo "Build completed successfully!"
