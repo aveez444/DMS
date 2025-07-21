@@ -37,14 +37,4 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
-    # # Public schema specific URLs
-# from django_tenants.utils import get_public_schema_name, get_tenant_model
-# from django.db import connection
-
-# # This check helps determine if we're in the public schema
-# if connection.schema_name == get_public_schema_name():
-#     urlpatterns += [
-#         path('superadmin/', admin.site.urls),
-#         # path('api/login/', account_views.login_api, name='login_api'),
-#         path('', account_views.public_login_page, name='public_login'),  # Public login page
-#     ]
+  
